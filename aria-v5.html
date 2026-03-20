@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ARIA">
+<meta name="theme-color" content="#03060e">
+<title>ARIA v5 — Memory & Knowledge</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#03060e;--bg1:#060a18;--bg2:#0a1025;--bg3:#0e1530;
+  --glass:rgba(10,16,37,0.8);--g2:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.06);--b2:rgba(99,179,237,0.22);
+  --blue:#63b3ed;--blue2:#4299e1;--indigo:#7f9cf5;--teal:#38b2ac;
+  --gold:#f6ad55;--rose:#fc8181;--green:#68d391;--purple:#b794f4;
+  --text:#edf2f7;--text2:#a0aec0;--text3:#4a5568;
+  --mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;}
+
+.bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.bg-fx::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 700px 500px at 0% 0%,rgba(99,179,237,0.055) 0%,transparent 70%),
+             radial-gradient(ellipse 500px 400px at 100% 100%,rgba(127,156,245,0.065) 0%,transparent 70%),
+             radial-gradient(ellipse 400px 300px at 60% 40%,rgba(56,178,172,0.03) 0%,transparent 70%);}
+.bg-fx::after{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(99,179,237,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(99,179,237,0.018) 1px,transparent 1px);
+  background-size:52px 52px;}
+
+/* ── Screens ── */
+.screen{display:none;flex-direction:column;height:100%;}
+.screen.active{display:flex;}
+
+/* ══ SETUP ══ */
+#setupScreen{align-items:center;justify-content:center;padding:24px 20px calc(24px + var(--safe-b));padding-top:calc(24px + var(--safe-t));overflow-y:auto;position:relative;z-index:10;}
+
+.setup-card{background:var(--glass);border:1px solid var(--border);border-radius:24px;padding:32px 26px;width:100%;max-width:440px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);animation:fadeUp .5s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+.setup-logo{display:flex;align-items:center;gap:13px;margin-bottom:26px;}
+.setup-mark{width:50px;height:50px;background:linear-gradient(135deg,rgba(99,179,237,0.18),rgba(127,156,245,0.18));border:1px solid rgba(99,179,237,0.32);border-radius:15px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:24px;color:var(--blue);box-shadow:0 0 28px rgba(99,179,237,0.2);animation:mp 3s ease-in-out infinite;}
+@keyframes mp{0%,100%{box-shadow:0 0 28px rgba(99,179,237,0.2);}50%{box-shadow:0 0 44px rgba(99,179,237,0.4);}}
+.setup-brand{font-family:'Bebas Neue';font-size:26px;letter-spacing:5px;color:var(--blue);}
+.setup-tagline{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:2px;}
+.setup-title{font-size:17px;font-weight:600;margin-bottom:5px;}
+.setup-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:22px;}
+
+.steps-box{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:22px;display:flex;flex-direction:column;gap:9px;}
+.step{display:flex;align-items:flex-start;gap:9px;}
+.snum{width:20px;height:20px;border-radius:50%;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.22);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--blue);flex-shrink:0;margin-top:1px;}
+.stxt{font-size:11px;color:var(--text2);line-height:1.5;}
+.stxt strong{color:var(--text);font-weight:500;}
+.stxt a{color:var(--blue);text-decoration:none;}
+
+.lbl{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:7px;display:block;}
+.kinput{display:flex;gap:7px;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:7px;transition:border-color .2s,box-shadow .2s;}
+.kinput:focus-within{border-color:rgba(99,179,237,0.38);box-shadow:0 0 0 3px rgba(99,179,237,0.06);}
+.kinput input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:12px;letter-spacing:.5px;}
+.kinput input::placeholder{color:var(--text3);letter-spacing:0;}
+.eye{background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;}
+.khint{font-size:10px;color:var(--text3);margin-bottom:20px;font-family:var(--mono);}
+.khint span{color:var(--green);}
+
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;margin-bottom:22px;}
+.mcard{padding:11px;border:1px solid var(--border);background:var(--g2);border-radius:11px;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.mcard:active,.mcard.sel{border-color:var(--b2);background:rgba(99,179,237,0.07);}
+.mcard.sel .mn{color:var(--blue);}
+.mn{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;}
+.ms{font-size:9px;color:var(--text3);font-family:var(--mono);}
+
+.btn-start{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue2),var(--indigo));border:none;border-radius:13px;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(66,153,225,0.28);transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.btn-start:active{transform:scale(0.98);}
+.errmsg{display:none;margin-top:9px;padding:9px 13px;background:rgba(252,129,129,0.08);border:1px solid rgba(252,129,129,0.18);border-radius:9px;font-size:11px;color:var(--rose);}
+
+/* ══ CHAT SCREEN ══ */
+#chatScreen{position:relative;z-index:10;}
+
+header{background:rgba(3,6,14,0.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding-top:var(--safe-t);flex-shrink:0;}
+.hdr-main{display:flex;align-items:center;justify-content:space-between;padding:11px 15px 9px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.bicon{width:36px;height:36px;background:linear-gradient(135deg,rgba(99,179,237,0.16),rgba(127,156,245,0.16));border:1px solid rgba(99,179,237,0.26);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:19px;color:var(--blue);box-shadow:0 0 14px rgba(99,179,237,0.14);position:relative;}
+.bring{position:absolute;inset:-3px;border-radius:12px;border:1px solid rgba(99,179,237,0.12);animation:rp 3s ease-in-out infinite;}
+@keyframes rp{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:0;transform:scale(1.14);}}
+.bname{font-family:'Bebas Neue';font-size:19px;letter-spacing:4px;color:var(--blue);line-height:1;}
+.bmodel{font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:1px;}
+.hbtns{display:flex;gap:5px;}
+.hb{width:32px;height:32px;background:var(--g2);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.hb:active{background:rgba(99,179,237,0.1);border-color:var(--b2);}
+
+.srow{display:flex;gap:5px;padding:0 15px 9px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+.srow::-webkit-scrollbar{display:none;}
+.pill{display:flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--border);border-radius:20px;font-family:var(--mono);font-size:8px;color:var(--text3);white-space:nowrap;background:var(--g2);flex-shrink:0;}
+.pill.on{border-color:rgba(104,211,145,0.3);color:var(--green);}
+.pill.mem{border-color:rgba(183,148,244,0.3);color:var(--purple);}
+.pill.kb{border-color:rgba(246,173,85,0.3);color:var(--gold);}
+.pdot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 4px currentColor;animation:bl 2s infinite;}
+@keyframes bl{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.abar{padding:7px 15px 9px;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--border);}
+.abar::-webkit-scrollbar{display:none;}
+.atag{padding:4px 12px;background:var(--g2);border:1px solid var(--border);border-radius:20px;font-family:var(--mono);font-size:9px;color:var(--text3);white-space:nowrap;cursor:pointer;letter-spacing:1px;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.atag:active,.atag.active{background:rgba(99,179,237,0.08);border-color:var(--b2);color:var(--blue);}
+
+/* ── Layout ── */
+.layout{flex:1;display:flex;overflow:hidden;position:relative;}
+.overlay{display:none;position:absolute;inset:0;z-index:49;background:rgba(0,0,0,0.55);}
+
+/* ── Sidebar ── */
+.sidebar{width:270px;background:rgba(3,6,14,0.6);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+@media(max-width:700px){
+  .sidebar{position:absolute;inset:0 auto 0 0;z-index:50;width:290px;background:rgba(3,6,14,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+  .sidebar.open{transform:translateX(0);}
+  .overlay{display:block !important;}
+}
+
+/* Sidebar tabs */
+.sb-tabs{display:flex;border-bottom:1px solid var(--border);}
+.sb-tab{flex:1;padding:11px 8px;font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;letter-spacing:1px;cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;-webkit-tap-highlight-color:transparent;}
+.sb-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+.sb-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.sb-panel.active{display:flex;}
+
+/* Sessions panel */
+.sb-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sb-title{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;}
+.sbbtns{display:flex;gap:5px;}
+.sbbtn{padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-family:var(--mono);font-size:8px;cursor:pointer;letter-spacing:1px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.sbbtn:active{border-color:var(--b2);color:var(--blue);}
+.sbbtn.danger:active{border-color:rgba(252,129,129,0.4);color:var(--rose);}
+
+#histList{flex:1;overflow-y:auto;padding:9px 9px 0;display:flex;flex-direction:column;gap:5px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.hi{padding:9px 11px;background:var(--g2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.hi:active,.hi.cur{border-color:var(--b2);background:rgba(99,179,237,0.05);}
+.hi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.hi-date{font-family:var(--mono);font-size:8px;color:var(--text3);}
+.hi-area{font-family:var(--mono);font-size:7px;padding:1px 5px;border-radius:3px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.14);color:var(--blue);}
+.hi-prev{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.new-s{margin:9px;padding:11px;background:none;border:1px dashed rgba(99,179,237,0.16);border-radius:10px;color:var(--text3);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:1px;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.new-s:active{border-color:var(--blue);color:var(--blue);}
+
+/* Memory panel */
+#memPanel{padding:12px;}
+.mem-intro{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:12px;padding:10px;background:rgba(183,148,244,0.05);border:1px solid rgba(183,148,244,0.15);border-radius:10px;}
+
+.mem-add{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+#memInput{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-family:var(--sans);font-size:12px;resize:none;outline:none;height:70px;width:100%;transition:border-color .2s;}
+#memInput:focus{border-color:rgba(183,148,244,0.35);}
+#memInput::placeholder{color:var(--text3);}
+.btn-mem-add{padding:8px;background:rgba(183,148,244,0.1);border:1px solid rgba(183,148,244,0.25);border-radius:9px;color:var(--purple);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:1px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.btn-mem-add:active{background:rgba(183,148,244,0.2);}
+
+.mem-list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.mem-list-title{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;}
+.btn-clr-mem{background:none;border:1px solid var(--border);border-radius:5px;color:var(--text3);font-family:var(--mono);font-size:8px;padding:2px 7px;cursor:pointer;}
+.btn-clr-mem:active{border-color:var(--rose);color:var(--rose);}
+
+#memList{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.mitem{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;background:var(--g2);border:1px solid var(--border);border-radius:8px;}
+.mitem-txt{flex:1;font-size:11px;color:var(--text2);line-height:1.4;}
+.mitem-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.mitem-del:active{color:var(--rose);}
+.mem-empty{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:16px;}
+
+/* Knowledge panel */
+#kbPanel{padding:12px;overflow-y:auto;}
+.kb-intro{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:12px;padding:10px;background:rgba(246,173,85,0.05);border:1px solid rgba(246,173,85,0.15);border-radius:10px;}
+
+.kb-add{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+#kbTitle{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-family:var(--sans);font-size:12px;outline:none;width:100%;transition:border-color .2s;}
+#kbTitle:focus{border-color:rgba(246,173,85,0.35);}
+#kbTitle::placeholder{color:var(--text3);}
+#kbContent{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;color:var(--text);font-family:var(--sans);font-size:12px;resize:none;outline:none;height:90px;width:100%;transition:border-color .2s;}
+#kbContent:focus{border-color:rgba(246,173,85,0.35);}
+#kbContent::placeholder{color:var(--text3);}
+
+.kb-file-row{display:flex;gap:6px;align-items:center;}
+.btn-file{flex:1;padding:8px;background:rgba(246,173,85,0.06);border:1px dashed rgba(246,173,85,0.2);border-radius:9px;color:var(--gold);font-family:var(--mono);font-size:9px;cursor:pointer;text-align:center;letter-spacing:1px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.btn-file:active{background:rgba(246,173,85,0.12);}
+#fileInput{display:none;}
+.btn-kb-add{padding:8px 14px;background:rgba(246,173,85,0.1);border:1px solid rgba(246,173,85,0.25);border-radius:9px;color:var(--gold);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:1px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.btn-kb-add:active{background:rgba(246,173,85,0.2);}
+
+.kb-list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.kb-list-title{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;}
+.btn-clr-kb{background:none;border:1px solid var(--border);border-radius:5px;color:var(--text3);font-family:var(--mono);font-size:8px;padding:2px 7px;cursor:pointer;}
+.btn-clr-kb:active{border-color:var(--rose);color:var(--rose);}
+
+#kbList{display:flex;flex-direction:column;gap:5px;}
+.kitem{padding:9px 11px;background:var(--g2);border:1px solid var(--border);border-radius:9px;}
+.kitem-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.kitem-title{font-size:11px;font-weight:600;color:var(--gold);}
+.kitem-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;-webkit-tap-highlight-color:transparent;}
+.kitem-del:active{color:var(--rose);}
+.kitem-preview{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kitem-meta{font-family:var(--mono);font-size:8px;color:var(--text3);margin-top:3px;}
+.kb-empty{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:16px;}
+
+/* ── Chat ── */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+#chat{flex:1;overflow-y:auto;padding:16px 13px;display:flex;flex-direction:column;gap:13px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;}
+
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:20px 8px;flex:1;animation:fadeUp .4s ease;}
+.worb{width:72px;height:72px;background:linear-gradient(135deg,rgba(99,179,237,0.1),rgba(127,156,245,0.1));border:1px solid rgba(99,179,237,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:32px;color:var(--blue);text-shadow:0 0 18px rgba(99,179,237,0.7);box-shadow:0 0 36px rgba(99,179,237,0.08);animation:of 4s ease-in-out infinite;}
+@keyframes of{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.wtitle{font-family:'Bebas Neue';font-size:24px;letter-spacing:3px;color:var(--text);}
+.wsub{font-size:12px;color:var(--text2);max-width:300px;line-height:1.65;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:440px;}
+.sc{padding:10px 12px;background:var(--g2);border:1px solid var(--border);border-radius:11px;cursor:pointer;text-align:left;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.sc:active{border-color:var(--b2);background:rgba(99,179,237,0.05);transform:scale(0.97);}
+.si{font-size:16px;margin-bottom:4px;display:block;}
+.st{font-size:10px;color:var(--text2);line-height:1.4;}
+
+.msg{display:flex;gap:8px;animation:fadeUp .2s ease;}
+.msg.user{flex-direction:row-reverse;}
+.av{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.av.ai{background:linear-gradient(135deg,rgba(99,179,237,0.16),rgba(127,156,245,0.16));border:1px solid rgba(99,179,237,0.2);}
+.av.hu{background:var(--g2);border:1px solid var(--border);}
+.mbody{max-width:83%;display:flex;flex-direction:column;gap:2px;}
+.msg.user .mbody{align-items:flex-end;}
+.mmeta{font-family:var(--mono);font-size:8px;color:var(--text3);display:flex;gap:5px;padding:0 3px;}
+.bubble{padding:10px 13px;border-radius:13px;font-size:13px;line-height:1.75;}
+.msg.ai .bubble{background:var(--glass);border:1px solid var(--border);border-top-left-radius:3px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.msg.user .bubble{background:linear-gradient(135deg,rgba(99,179,237,0.12),rgba(127,156,245,0.08));border:1px solid rgba(99,179,237,0.17);border-top-right-radius:3px;}
+.bubble strong{color:var(--blue);font-weight:500;}
+.bubble code{background:rgba(99,179,237,0.08);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--indigo);border:1px solid rgba(99,179,237,0.11);}
+.shdr{color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:2px;margin:7px 0 2px;display:block;}
+
+/* memory tag in bubble */
+.mem-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:rgba(183,148,244,0.1);border:1px solid rgba(183,148,244,0.2);border-radius:4px;font-family:var(--mono);font-size:8px;color:var(--purple);margin-bottom:7px;}
+
+.tdots{display:flex;gap:5px;padding:11px 13px;align-items:center;}
+.tdots span{width:6px;height:6px;border-radius:50%;animation:db 1.3s ease-in-out infinite;}
+.tdots span:nth-child(1){background:var(--blue);animation-delay:0s;}
+.tdots span:nth-child(2){background:var(--indigo);animation-delay:.18s;}
+.tdots span:nth-child(3){background:var(--teal);animation-delay:.36s;}
+@keyframes db{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-8px);opacity:1;}}
+
+.inp-wrap{padding:9px 11px calc(9px + var(--safe-b)) 11px;background:rgba(3,6,14,0.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);flex-shrink:0;}
+.ibox{display:flex;align-items:flex-end;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:15px;padding:9px 11px;transition:border-color .2s,box-shadow .2s;}
+.ibox:focus-within{border-color:rgba(99,179,237,0.33);box-shadow:0 0 0 3px rgba(99,179,237,0.05);}
+#uInput{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:14px;resize:none;max-height:100px;line-height:1.5;caret-color:var(--blue);}
+#uInput::placeholder{color:var(--text3);}
+.send{width:34px;height:34px;flex-shrink:0;background:linear-gradient(135deg,var(--blue2),var(--indigo));border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;box-shadow:0 4px 12px rgba(66,153,225,0.22);transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.send:active{transform:scale(0.92);}
+.send:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.ifoot{display:flex;justify-content:space-between;padding:4px 2px 0;}
+.ih{font-family:var(--mono);font-size:8px;color:var(--text3);}
+
+/* iOS modal */
+#iosModal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;padding-bottom:var(--safe-b);}
+#iosModal.open{display:flex;}
+.ios-sheet{background:var(--bg2);border:1px solid var(--border);border-radius:22px 22px 0 0;padding:20px 18px 26px;width:100%;max-width:480px;animation:su .3s cubic-bezier(.4,0,.2,1);}
+@keyframes su{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ioshandle{width:32px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px;}
+.iost{font-family:'Bebas Neue';font-size:19px;letter-spacing:3px;color:var(--blue);margin-bottom:4px;}
+.ioss{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;}
+.iosstep{display:flex;align-items:flex-start;gap:9px;margin-bottom:11px;}
+.iosn{width:20px;height:20px;border-radius:50%;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.22);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--blue);flex-shrink:0;margin-top:1px;}
+.iostxt{font-size:12px;color:var(--text2);line-height:1.5;padding-top:1px;}
+.iostxt strong{color:var(--text);font-weight:500;}
+.ios-close{width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,var(--blue2),var(--indigo));border:none;border-radius:12px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+</style>
+</head>
+<body>
+<div class="bg-fx"></div>
+
+<!-- ══ SETUP ══ -->
+<div class="screen active" id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-mark">A</div>
+      <div><div class="setup-brand">ARIA</div><div class="setup-tagline">MEMORY & KNOWLEDGE · GROQ POWERED</div></div>
+    </div>
+    <div class="setup-title">Configure sua ARIA</div>
+    <div class="setup-desc">Cole sua chave Groq para ativar. Gratuito e 100% independente.</div>
+    <div class="steps-box">
+      <div class="step"><div class="snum">1</div><div class="stxt">Acesse <a href="https://console.groq.com" target="_blank"><strong>console.groq.com</strong></a> e crie sua conta</div></div>
+      <div class="step"><div class="snum">2</div><div class="stxt">Vá em <strong>API Keys → Create API Key</strong></div></div>
+      <div class="step"><div class="snum">3</div><div class="stxt">Copie a chave e cole abaixo</div></div>
+    </div>
+    <label class="lbl">CHAVE GROQ API</label>
+    <div class="kinput"><input type="password" id="apiKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false"><button class="eye" onclick="toggleEye()" id="eyeBtn">👁</button></div>
+    <div class="khint">🔒 Salva só no dispositivo · <span>Nunca enviada a terceiros</span></div>
+    <label class="lbl">MODELO</label>
+    <div class="mgrid">
+      <div class="mcard sel" data-model="llama-3.3-70b-versatile" onclick="selModel(this)"><div class="mn">LLaMA 3.3 70B</div><div class="ms">⚡ Recomendado</div></div>
+      <div class="mcard" data-model="llama-3.1-8b-instant" onclick="selModel(this)"><div class="mn">LLaMA 3.1 8B</div><div class="ms">🚀 Ultra rápido</div></div>
+      <div class="mcard" data-model="mixtral-8x7b-32768" onclick="selModel(this)"><div class="mn">Mixtral 8x7B</div><div class="ms">🧠 Raciocínio</div></div>
+      <div class="mcard" data-model="gemma2-9b-it" onclick="selModel(this)"><div class="mn">Gemma 2 9B</div><div class="ms">💎 Eficiente</div></div>
+    </div>
+    <button class="btn-start" onclick="startApp()">▶ INICIAR ARIA</button>
+    <div class="errmsg" id="errMsg"></div>
+  </div>
+</div>
+
+<!-- ══ CHAT SCREEN ══ -->
+<div class="screen" id="chatScreen">
+  <header>
+    <div class="hdr-main">
+      <div class="brand">
+        <div class="bicon">A<div class="bring"></div></div>
+        <div><div class="bname">ARIA</div><div class="bmodel" id="modelBadge">—</div></div>
+      </div>
+      <div class="hbtns">
+        <div class="hb" onclick="toggleSB()" title="Sessões">📋</div>
+        <div class="hb" onclick="openMem()" title="Memória">🧠</div>
+        <div class="hb" onclick="openKB()" title="Conhecimento">📚</div>
+        <div class="hb" onclick="showIos()" title="Instalar">📲</div>
+        <div class="hb" onclick="goSetup()" title="Config">⚙️</div>
+      </div>
+    </div>
+    <div class="srow">
+      <div class="pill on"><div class="pdot"></div>ONLINE</div>
+      <div class="pill mem"><div class="pdot"></div><span id="memCount">MEM: 0</span></div>
+      <div class="pill kb"><div class="pdot"></div><span id="kbCount">KB: 0</span></div>
+      <div class="pill" id="areaPill">R&D GERAL</div>
+    </div>
+    <div class="abar">
+      <div class="atag active" onclick="setArea(this,'GERAL','pesquisa e desenvolvimento em qualquer área')">R&D GERAL</div>
+      <div class="atag" onclick="setArea(this,'CIÊNCIA','ciências exatas, física, química, biologia')">CIÊNCIA</div>
+      <div class="atag" onclick="setArea(this,'ENGENHARIA','engenharia e projetos técnicos')">ENGENHARIA</div>
+      <div class="atag" onclick="setArea(this,'MEDICINA','medicina, saúde e pesquisa clínica')">MEDICINA</div>
+      <div class="atag" onclick="setArea(this,'TECNOLOGIA','tecnologia, programação e sistemas')">TECNOLOGIA</div>
+      <div class="atag" onclick="setArea(this,'NEGÓCIOS','negócios, mercado e estratégia')">NEGÓCIOS</div>
+      <div class="atag" onclick="setArea(this,'DIREITO','direito e legislação')">DIREITO</div>
+      <div class="atag" onclick="setArea(this,'EDUCAÇÃO','educação e ensino')">EDUCAÇÃO</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="overlay" onclick="closeSB()"></div>
+
+    <div class="sidebar" id="sb">
+      <div class="sb-tabs">
+        <div class="sb-tab active" onclick="switchTab('sessions')" id="tab-sessions">📋 SESSÕES</div>
+        <div class="sb-tab" onclick="switchTab('memory')" id="tab-memory">🧠 MEMÓRIA</div>
+        <div class="sb-tab" onclick="switchTab('kb')" id="tab-kb">📚 BASE</div>
+      </div>
+
+      <!-- Sessions -->
+      <div class="sb-panel active" id="panel-sessions">
+        <div class="sb-hdr">
+          <span class="sb-title">// HISTÓRICO</span>
+          <div class="sbbtns">
+            <button class="sbbtn" onclick="newSess()">+ NOVA</button>
+            <button class="sbbtn danger" onclick="clearHist()">DEL</button>
+          </div>
+        </div>
+        <div id="histList"></div>
+        <button class="new-s" onclick="newSess()">+ Nova sessão</button>
+      </div>
+
+      <!-- Memory -->
+      <div class="sb-panel" id="panel-memory">
+        <div id="memPanel" style="padding:12px;overflow-y:auto;flex:1;">
+          <div class="mem-intro">💡 Adicione fatos sobre você que a ARIA deve sempre lembrar — nome, preferências, projetos, contexto profissional.</div>
+          <div class="mem-add">
+            <textarea id="memInput" placeholder="Ex: Meu nome é João. Trabalho com engenharia de software. Prefiro respostas técnicas e diretas."></textarea>
+            <button class="btn-mem-add" onclick="addMemory()">+ SALVAR MEMÓRIA</button>
+          </div>
+          <div class="mem-list-hdr">
+            <span class="mem-list-title">// MEMÓRIAS SALVAS</span>
+            <button class="btn-clr-mem" onclick="clearMemory()">LIMPAR</button>
+          </div>
+          <div id="memList"><div class="mem-empty">Nenhuma memória salva</div></div>
+        </div>
+      </div>
+
+      <!-- Knowledge Base -->
+      <div class="sb-panel" id="panel-kb">
+        <div id="kbPanel">
+          <div class="kb-intro">📖 Adicione textos, documentos ou conhecimentos específicos. A ARIA usará essas informações nas respostas.</div>
+          <div class="kb-add">
+            <input type="text" id="kbTitle" placeholder="Título do documento ou tópico">
+            <textarea id="kbContent" placeholder="Cole o conteúdo aqui — artigos, notas, especificações, manuais..."></textarea>
+            <div class="kb-file-row">
+              <div class="btn-file" onclick="document.getElementById('fileInput').click()">📄 IMPORTAR .TXT</div>
+              <input type="file" id="fileInput" accept=".txt,.md" onchange="importFile(event)">
+              <button class="btn-kb-add" onclick="addKB()">+ ADICIONAR</button>
+            </div>
+          </div>
+          <div class="kb-list-hdr">
+            <span class="kb-list-title">// BASE DE CONHECIMENTO</span>
+            <button class="btn-clr-kb" onclick="clearKB()">LIMPAR</button>
+          </div>
+          <div id="kbList"><div class="kb-empty">Nenhum documento adicionado</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-wrap">
+      <div id="chat"></div>
+      <div class="inp-wrap">
+        <div class="ibox">
+          <textarea id="uInput" placeholder="Faça sua pesquisa..." rows="1" onkeydown="hKey(event)" oninput="aResize(this)"></textarea>
+          <button class="send" id="sendBtn" onclick="sendMsg()">➤</button>
+        </div>
+        <div class="ifoot">
+          <span class="ih">ENTER ENVIAR · SHIFT+ENTER NOVA LINHA</span>
+          <span class="ih" id="cCount">0 msgs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- iOS Modal -->
+<div id="iosModal">
+  <div class="ios-sheet">
+    <div class="ioshandle"></div>
+    <div class="iost">INSTALAR NO iPHONE</div>
+    <div class="ioss">Adicione a ARIA à sua tela inicial no Safari:</div>
+    <div class="iosstep"><div class="iosn">1</div><div class="iostxt">Abra este link no <strong>Safari</strong></div></div>
+    <div class="iosstep"><div class="iosn">2</div><div class="iostxt">Toque em <strong>Compartilhar</strong> (□↑) na barra inferior</div></div>
+    <div class="iosstep"><div class="iosn">3</div><div class="iostxt">Toque em <strong>"Adicionar à Tela de Início"</strong></div></div>
+    <div class="iosstep"><div class="iosn">4</div><div class="iostxt">Toque em <strong>"Adicionar"</strong> — pronto!</div></div>
+    <button class="ios-close" onclick="closeIos()">Entendido ✓</button>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────
+let API_KEY='', MODEL='llama-3.3-70b-versatile';
+let sessions=[], curId=null;
+let memories=[], knowledgeBase=[];
+let area='GERAL', areaCtx='pesquisa e desenvolvimento em qualquer área';
+let busy=false;
+
+// ── Storage ──────────────────────────────────────────────────
+const S={
+  async set(k,v){try{await window.storage.set(k,JSON.stringify(v));}catch{localStorage.setItem(k,JSON.stringify(v));}},
+  async get(k){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}catch{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}}},
+};
+
+// ── Setup ────────────────────────────────────────────────────
+function toggleEye(){const i=document.getElementById('apiKeyInput'),b=document.getElementById('eyeBtn');if(i.type==='password'){i.type='text';b.textContent='🙈';}else{i.type='password';b.textContent='👁';}}
+function selModel(el){document.querySelectorAll('.mcard').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');MODEL=el.dataset.model;}
+
+async function startApp(){
+  const key=document.getElementById('apiKeyInput').value.trim();
+  if(!key||!key.startsWith('gsk_')){showErr('Chave inválida. Deve começar com "gsk_".');return;}
+  API_KEY=key;
+  await S.set('aria_key',key);await S.set('aria_model',MODEL);
+  document.getElementById('modelBadge').textContent=MODEL.split('-').slice(0,2).join(' ').toUpperCase();
+  switchScreen('chatScreen');
+  await loadAll();
+}
+
+function showErr(msg){const e=document.getElementById('errMsg');e.style.display='block';e.textContent=msg;setTimeout(()=>e.style.display='none',5000);}
+function goSetup(){switchScreen('setupScreen');document.getElementById('apiKeyInput').value=API_KEY;}
+function switchScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ── Load all data ─────────────────────────────────────────────
+async function loadAll(){
+  sessions=(await S.get('aria5_sess'))||[];
+  memories=(await S.get('aria5_mem'))||[];
+  knowledgeBase=(await S.get('aria5_kb'))||[];
+  renderHist(); renderMemList(); renderKBList(); updateBadges();
+  if(!sessions.length) newSess();
+  else{curId=sessions[0].id;renderHist();renderChat();updateCount();}
+}
+
+// ── Sessions ──────────────────────────────────────────────────
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+async function saveSess(){await S.set('aria5_sess',sessions);}
+
+function newSess(){
+  closeSB();
+  const id=gid();
+  sessions.unshift({id,created:new Date().toISOString(),area:'GERAL',messages:[],preview:'Nova sessão'});
+  curId=id;saveSess();renderHist();renderChat();updateCount();
+}
+function loadSess(id){closeSB();curId=id;renderHist();renderChat();updateCount();}
+function getSess(){return sessions.find(s=>s.id===curId);}
+async function clearHist(){if(!confirm('Apagar todo o histórico?'))return;sessions=[];curId=null;await saveSess();renderHist();newSess();}
+
+function renderHist(){
+  const el=document.getElementById('histList');
+  if(!sessions.length){el.innerHTML='<div style="padding:14px;font-size:10px;color:var(--text3);text-align:center">Nenhuma sessão</div>';return;}
+  el.innerHTML=sessions.map(s=>{
+    const d=new Date(s.created);
+    const dt=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="hi${s.id===curId?' cur':''}" onclick="loadSess('${s.id}')">
+      <div class="hi-top"><span class="hi-date">${dt}</span><span class="hi-area">${s.area}</span></div>
+      <div class="hi-prev">${esc(s.preview)}</div></div>`;
+  }).join('');
+}
+
+// ── Memory ────────────────────────────────────────────────────
+async function saveMem(){await S.set('aria5_mem',memories);}
+
+async function addMemory(){
+  const txt=document.getElementById('memInput').value.trim();
+  if(!txt)return;
+  memories.push({id:gid(),text:txt,created:new Date().toISOString()});
+  document.getElementById('memInput').value='';
+  await saveMem();renderMemList();updateBadges();
+}
+
+async function deleteMemory(id){memories=memories.filter(m=>m.id!==id);await saveMem();renderMemList();updateBadges();}
+async function clearMemory(){if(!confirm('Apagar todas as memórias?'))return;memories=[];await saveMem();renderMemList();updateBadges();}
+
+function renderMemList(){
+  const el=document.getElementById('memList');
+  if(!memories.length){el.innerHTML='<div class="mem-empty">Nenhuma memória salva</div>';return;}
+  el.innerHTML=memories.map(m=>`
+    <div class="mitem">
+      <div class="mitem-txt">${esc(m.text)}</div>
+      <button class="mitem-del" onclick="deleteMemory('${m.id}')">✕</button>
+    </div>`).join('');
+}
+
+// ── Knowledge Base ────────────────────────────────────────────
+async function saveKB(){await S.set('aria5_kb',knowledgeBase);}
+
+async function addKB(){
+  const title=document.getElementById('kbTitle').value.trim();
+  const content=document.getElementById('kbContent').value.trim();
+  if(!title||!content){alert('Preencha título e conteúdo.');return;}
+  knowledgeBase.push({id:gid(),title,content,created:new Date().toISOString(),chars:content.length});
+  document.getElementById('kbTitle').value='';
+  document.getElementById('kbContent').value='';
+  await saveKB();renderKBList();updateBadges();
+}
+
+async function deleteKB(id){knowledgeBase=knowledgeBase.filter(k=>k.id!==id);await saveKB();renderKBList();updateBadges();}
+async function clearKB(){if(!confirm('Apagar toda a base de conhecimento?'))return;knowledgeBase=[];await saveKB();renderKBList();updateBadges();}
+
+function importFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    document.getElementById('kbTitle').value=file.name.replace(/\.[^.]+$/,'');
+    document.getElementById('kbContent').value=ev.target.result;
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function renderKBList(){
+  const el=document.getElementById('kbList');
+  if(!knowledgeBase.length){el.innerHTML='<div class="kb-empty">Nenhum documento adicionado</div>';return;}
+  el.innerHTML=knowledgeBase.map(k=>`
+    <div class="kitem">
+      <div class="kitem-top"><span class="kitem-title">${esc(k.title)}</span><button class="kitem-del" onclick="deleteKB('${k.id}')">✕</button></div>
+      <div class="kitem-preview">${esc(k.content.slice(0,80))}...</div>
+      <div class="kitem-meta">${k.chars.toLocaleString()} chars · ${new Date(k.created).toLocaleDateString('pt-BR')}</div>
+    </div>`).join('');
+}
+
+function updateBadges(){
+  document.getElementById('memCount').textContent=`MEM: ${memories.length}`;
+  document.getElementById('kbCount').textContent=`KB: ${knowledgeBase.length}`;
+}
+
+// ── Sidebar & Tabs ────────────────────────────────────────────
+function toggleSB(){const sb=document.getElementById('sb');sb.classList.toggle('open');document.querySelector('.overlay').style.display=sb.classList.contains('open')?'block':'none';}
+function closeSB(){document.getElementById('sb').classList.remove('open');document.querySelector('.overlay').style.display='none';}
+function openMem(){document.getElementById('sb').classList.add('open');document.querySelector('.overlay').style.display='block';switchTab('memory');}
+function openKB(){document.getElementById('sb').classList.add('open');document.querySelector('.overlay').style.display='block';switchTab('kb');}
+
+function switchTab(name){
+  document.querySelectorAll('.sb-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sb-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ── Area ──────────────────────────────────────────────────────
+function setArea(btn,a,ctx){
+  area=a;areaCtx=ctx;
+  document.querySelectorAll('.atag').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('areaPill').textContent=a;
+}
+
+// ── Input ─────────────────────────────────────────────────────
+function aResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function hKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function sendSug(t){document.getElementById('uInput').value=t;sendMsg();}
+function updateCount(){const s=getSess();document.getElementById('cCount').textContent=(s?s.messages.length:0)+' msgs';}
+
+// ── Chat render ───────────────────────────────────────────────
+function renderChat(){
+  const c=document.getElementById('chat');c.innerHTML='';
+  const s=getSess();
+  if(!s||!s.messages.length){showWelcome();return;}
+  s.messages.forEach(m=>addMsg(m.role,m.content,m.area||'GERAL',m.time,false));
+  c.scrollTop=c.scrollHeight;
+}
+
+function showWelcome(){
+  document.getElementById('chat').innerHTML=`
+  <div class="welcome">
+    <div class="worb">A</div>
+    <div class="wtitle">ARIA COM MEMÓRIA</div>
+    <div class="wsub">Agora com memória persistente e base de conhecimento. Use 🧠 e 📚 para configurar.</div>
+    <div class="sgrid">
+      <div class="sc" onclick="sendSug('Quais são as tendências de IA open-source em 2025?')"><span class="si">⚡</span><span class="st">Tendências IA 2025</span></div>
+      <div class="sc" onclick="sendSug('Explique CRISPR e biotecnologia moderna')"><span class="si">🧬</span><span class="st">Biotecnologia</span></div>
+      <div class="sc" onclick="sendSug('Como criar um produto digital do zero?')"><span class="si">🚀</span><span class="st">Produto digital</span></div>
+      <div class="sc" onclick="sendSug('Melhores práticas de arquitetura de software')"><span class="si">💻</span><span class="st">Arquitetura software</span></div>
+      <div class="sc" onclick="sendSug('Estratégia de negócios para startups')"><span class="si">📊</span><span class="st">Estratégia startup</span></div>
+      <div class="sc" onclick="sendSug('Explique computação quântica')"><span class="si">🔬</span><span class="st">Comp. quântica</span></div>
+    </div>
+  </div>`;
+}
+
+function addMsg(role,content,ar,time,scroll=true){
+  const chat=document.getElementById('chat');
+  const w=chat.querySelector('.welcome');if(w)w.remove();
+  const t=time||new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');
+  div.className=`msg ${role==='user'?'user':'ai'}`;
+  if(role==='user'){
+    div.innerHTML=`<div class="av hu">👤</div><div class="mbody"><div class="mmeta"><span>Você</span><span>${t}</span><span>${ar}</span></div><div class="bubble">${esc(content)}</div></div>`;
+  } else {
+    const memTag=memories.length?`<span class="mem-tag">🧠 ${memories.length} memória(s) ativa(s)</span><br>`:'';
+    div.innerHTML=`<div class="av ai">✦</div><div class="mbody"><div class="mmeta"><span>ARIA</span><span>${t}</span><span>${ar}</span></div><div class="bubble">${memTag}${fmt(content)}</div></div>`;
+  }
+  chat.appendChild(div);
+  if(scroll)chat.scrollTop=chat.scrollHeight;
+}
+
+function showTyping(){
+  const c=document.getElementById('chat');
+  const d=document.createElement('div');d.className='msg ai';d.id='typ';
+  d.innerHTML=`<div class="av ai">✦</div><div class="mbody"><div class="bubble"><div class="tdots"><span></span><span></span><span></span></div></div></div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function rmTyping(){const t=document.getElementById('typ');if(t)t.remove();}
+
+// ── Build system prompt with memory + KB ──────────────────────
+function buildSystem(){
+  let sys=`Você é ARIA, assistente avançada de Pesquisa e Desenvolvimento. 100% independente.
+Área atual: ${area} — ${areaCtx}.
+Responda em português brasileiro. Seja analítica, profunda e precisa.
+Use **negrito** para conceitos-chave. Use \`código\` para termos técnicos.
+Para seções use: "─── TÍTULO ───". Máximo 500 palavras.`;
+
+  if(memories.length>0){
+    sys+=`\n\n═══ MEMÓRIA PESSOAL DO USUÁRIO ═══\nUse estas informações para personalizar suas respostas:\n`;
+    memories.forEach((m,i)=>{ sys+=`${i+1}. ${m.text}\n`; });
+  }
+
+  if(knowledgeBase.length>0){
+    sys+=`\n\n═══ BASE DE CONHECIMENTO ═══\nDocumentos disponíveis para consulta:\n`;
+    knowledgeBase.forEach(k=>{
+      const preview=k.content.length>800?k.content.slice(0,800)+'...[truncado]':k.content;
+      sys+=`\n[${k.title}]\n${preview}\n`;
+    });
+  }
+
+  return sys;
+}
+
+// ── Send ──────────────────────────────────────────────────────
+async function sendMsg(){
+  if(busy||!API_KEY)return;
+  const inp=document.getElementById('uInput');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';inp.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;busy=true;
+
+  const sess=getSess();
+  const time=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  sess.messages.push({role:'user',content:text,area,time});
+  if(sess.messages.length===1)sess.preview=text.slice(0,55);
+  sess.area=area;
+  saveSess();addMsg('user',text,area,time);updateCount();showTyping();
+
+  const history=sess.messages
+    .filter(m=>m.role==='user'||m.role==='assistant')
+    .map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content}));
+
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
+      body:JSON.stringify({model:MODEL,max_tokens:1024,messages:[{role:'system',content:buildSystem()},...history]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Erro API');}
+    const data=await res.json();rmTyping();
+    const reply=data.choices?.[0]?.message?.content||'Sem resposta.';
+    const rt=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    sess.messages.push({role:'assistant',content:reply,area,time:rt});
+    saveSess();renderHist();addMsg('assistant',reply,area,rt);updateCount();
+  }catch(e){
+    rmTyping();
+    const msg=e.message.includes('401')?'Chave API inválida. Vá em ⚙️ e corrija.':
+              e.message.includes('429')?'Limite atingido. Aguarde um momento.':
+              `Erro: ${e.message}`;
+    addMsg('assistant',msg,area,time);
+  }
+  document.getElementById('sendBtn').disabled=false;busy=false;
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(t){return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>').replace(/─── (.*?) ───/g,'<span class="shdr">─── $1 ───</span>').replace(/\n/g,'<br>');}
+
+function showIos(){document.getElementById('iosModal').classList.add('open');}
+function closeIos(){document.getElementById('iosModal').classList.remove('open');}
+document.getElementById('iosModal').addEventListener('click',e=>{if(e.target===document.getElementById('iosModal'))closeIos();});
+
+// ── Init ──────────────────────────────────────────────────────
+async function init(){
+  const key=await S.get('aria_key'),mdl=await S.get('aria_model');
+  if(key&&key.startsWith('gsk_')){
+    API_KEY=key;
+    if(mdl){MODEL=mdl;document.querySelector(`[data-model="${mdl}"]`)?.click();}
+    document.getElementById('modelBadge').textContent=MODEL.split('-').slice(0,2).join(' ').toUpperCase();
+    switchScreen('chatScreen');
+    await loadAll();
+  }
+}
+init();
+</script>
+</body>
+</html>
