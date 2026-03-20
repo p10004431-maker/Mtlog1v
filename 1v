@@ -1,0 +1,25 @@
+Perfeito! Vou construir a ARIA com memória real entre sessões e base de conhecimento própria.​​​​​​​​​​​​​​​​
+
+ARIA v5 com memória e conhecimento está pronta! 🧠📚
+
+O que foi adicionado
+
+🧠 Memória entre sessões — toque no botão 🧠 no header ou na barra lateral. Adicione fatos sobre você como:
+
+	∙	“Meu nome é João, trabalho com engenharia de software”
+	∙	“Prefiro respostas técnicas e diretas”
+	∙	“Estou desenvolvendo um app de saúde”
+
+A ARIA carrega essas memórias em toda conversa automaticamente, mesmo em sessões novas.
+
+📚 Base de conhecimento — toque em 📚. Você pode:
+
+	∙	Colar textos, artigos, manuais, especificações
+	∙	Importar arquivos .txt ou .md direto do iPhone
+	∙	A ARIA consulta esses documentos nas respostas
+
+Indicadores no header — você vê em tempo real quantas memórias e documentos estão ativos (MEM: 3 · KB: 2).
+
+Como ativar no iPhone
+
+Hospede o arquivo no GitHub Pages (como explicado antes) e abra via Safari → Adicionar à Tela de Início. Tudo fica salvo no dispositivo. 📱​​​​​​​​​​​​​​​​
